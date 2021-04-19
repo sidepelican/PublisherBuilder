@@ -1,45 +1,44 @@
 import Combine
 
 @_functionBuilder
-public struct FlatMapBuilder<P: Publisher> {
+public struct FlatMapBuilder<Output, Failure: Error> {
     public static func buildBlock<C: Publisher>(_ component: C) -> C {
         component
+    }
+
+    public static func buildBlock<C: Publisher>(_ component: C) -> AnyPublisher<Output, Failure>
+    where
+        Output == C.Output, Failure == C.Failure
+    {
+        component.eraseToAnyPublisher()
     }
 
     public static func buildBlock<C1: Publisher>(_ c0: Void?, _ c1: C1) -> C1 {
         c1
     }
 
-    public static func buildExpression(_ expression: P) -> P {
+    public static func buildExpression<P: Publisher>(_ expression: P) -> P
+    where
+        P.Output == Output, P.Failure == Failure
+    {
         expression
     }
 
-//    public static func buildExpression<E: Publisher>(_ expression: E) -> P
-//    where
-//        P == AnyPublisher<E.Output, E.Failure>
-//    {
-//        expression.eraseToAnyPublisher() as! P
-//    }
-
-//    public static func buildExpression<E: Publisher>(_ expression: E) -> E {
-//        expression
-//    }
-
-    public static func buildExpression<E: Publisher>(_ expression: E) -> AnyPublisher<E.Output, E.Failure> {
-        expression.eraseToAnyPublisher()
+    @_disfavoredOverload
+    public static func buildExpression<P: Publisher>(_ expression: P) -> Publishers.SetFailureType<P, Failure>
+    where
+        P.Output == Output, P.Failure == Never
+    {
+        expression.setFailureType(to: Failure.self)
     }
 
-//    public static func buildFinalResult<C: Publisher>(_ component: C) -> AnyPublisher<C.Output, C.Failure> {
-//        component.eraseToAnyPublisher()
-//    }
-
-//    public static func buildExpression<E: Publisher>(_ expression: E) -> Publishers.SetFailureType<E, P.Failure>
-//    where
-//        E.Output == P.Output,
-//        E.Failure == Never
-//    {
-//        expression.setFailureType(to: P.Failure.self)
-//    }
+    @_disfavoredOverload
+    public static func buildExpression<E: Publisher>(_ expression: E) -> AnyPublisher<Output, Failure>
+    where
+        Output == E.Output, Failure == E.Failure
+    {
+        expression.eraseToAnyPublisher()
+    }
 
     public static func buildEither<F: Publisher, S: Publisher>(first component: F) -> EitherPublisher<F, S>
     where
@@ -95,16 +94,18 @@ where
 
 extension Publisher {
     @_disfavoredOverload
-    public func flatMapBuild<O, P>(
-        @FlatMapBuilder<P> _ builder: @escaping (Self.Output) -> P
+    public func flatMapBuild<O, F, P>(
+        to outputType: O.Type = O.self,
+        @FlatMapBuilder<O, F> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<P, Self>
-    where O == P.Output, P: Publisher, P.Failure == Failure
+    where O == P.Output, F == P.Failure, P: Publisher, P.Failure == Failure
     {
         flatMap(builder)
     }
 
     public func flatMapBuild<O, P>(
-        @FlatMapBuilder<P> _ builder: @escaping (Self.Output) -> P
+        to outputType: O.Type = O.self,
+        @FlatMapBuilder<O, Never> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<Publishers.SetFailureType<P, Self.Failure>, Self>
     where O == P.Output, P: Publisher, P.Failure == Never
     {
@@ -117,10 +118,11 @@ extension Publisher {
 }
 
 extension Publisher where Failure == Never {
-    public func flatMapBuild<O, P>(
-        @FlatMapBuilder<P> _ builder: @escaping (Self.Output) -> P
+    public func flatMapBuild<O, F, P>(
+        to outputType: O.Type = O.self,
+        @FlatMapBuilder<O, F> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<P, Publishers.SetFailureType<Self, P.Failure>>
-    where O == P.Output, P: Publisher
+    where O == P.Output, F == P.Failure, P: Publisher
     {
         if #available(macOS 11.0, iOS 14.0, *) {
             return flatMap(builder)
@@ -130,7 +132,8 @@ extension Publisher where Failure == Never {
     }
 
     public func flatMapBuild<O, P>(
-        @FlatMapBuilder<P> _ builder: @escaping (Self.Output) -> P
+        to outputType: O.Type = O.self,
+        @FlatMapBuilder<O, Never> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<P, Self>
     where O == P.Output, P: Publisher, P.Failure == Never
     {
