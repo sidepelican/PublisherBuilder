@@ -42,11 +42,17 @@ final class FlatMapBuilderTests: XCTestCase {
             }
             .eraseToAnyPublisher()
 
-//        let _: AnyPublisher<[String], Error> = errorSubject
-//            .flatMapBuild { v in
-//                neverSubject
-//            }
-//            .eraseToAnyPublisher()
+        let _: AnyPublisher<[Int], Error> = errorSubject
+            .flatMapBuild { v in
+                neverSubject
+            }
+            .eraseToAnyPublisher()
+
+        let _: AnyPublisher<[Int], Error> = errorSubject
+            .flatMapBuild { v -> AnyPublisher<[Int], Never> in
+                Empty()
+            }
+            .eraseToAnyPublisher()
     }
 
     func testExample3() {
@@ -102,11 +108,10 @@ final class FlatMapBuilderTests: XCTestCase {
             }
             .eraseToAnyPublisher()
 
-        let _: AnyPublisher<[String], Error> = neverSubject
-            .flatMapBuild { v in
+        let _: AnyPublisher<[String], Never> = neverSubject
+            .flatMapBuild { v -> AnyPublisher<[String], Never> in
                 _ = 1
-                Int("")
-                errorSubject
+                Just([])
             }
             .eraseToAnyPublisher()
 

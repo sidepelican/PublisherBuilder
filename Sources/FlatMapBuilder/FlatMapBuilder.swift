@@ -6,13 +6,6 @@ public struct FlatMapBuilder<Output, Failure: Error> {
         component
     }
 
-    public static func buildBlock<C: Publisher>(_ component: C) -> AnyPublisher<Output, Failure>
-    where
-        Output == C.Output, Failure == C.Failure
-    {
-        component.eraseToAnyPublisher()
-    }
-
     public static func buildBlock<C0, C1: Publisher>(_ c0: C0?, _ c1: C1) -> C1 {
         c1
     }
@@ -42,14 +35,6 @@ public struct FlatMapBuilder<Output, Failure: Error> {
         P.Output == Output, P.Failure == Never
     {
         expression.setFailureType(to: Failure.self)
-    }
-
-    @_disfavoredOverload
-    public static func buildExpression<E: Publisher>(_ expression: E) -> AnyPublisher<Output, Failure>
-    where
-        Output == E.Output, Failure == E.Failure
-    {
-        expression.eraseToAnyPublisher()
     }
 
     public static func buildEither<F: Publisher, S: Publisher>(first component: F) -> EitherPublisher<F, S>
@@ -82,6 +67,36 @@ public struct FlatMapBuilder<Output, Failure: Error> {
         S.Failure == Never
     {
         .right(component.setFailureType(to: F.Failure.self))
+    }
+}
+
+extension FlatMapBuilder {
+    public static func buildBlock<C: Publisher>(_ component: C) -> AnyPublisher<Output, Failure>
+    where
+        Output == C.Output, Failure == C.Failure
+    {
+        component.eraseToAnyPublisher()
+    }
+
+    public static func buildBlock<C0, C1: Publisher>(_ c0: C0?, _ c1: C1) -> AnyPublisher<Output, Failure>
+    where
+        Output == C1.Output, Failure == C1.Failure
+    {
+        c1.eraseToAnyPublisher()
+    }
+
+    public static func buildBlock<C0, C1, C2: Publisher>(_ c0: C0?, _ c1: C1?, _ c2: C2) -> AnyPublisher<Output, Failure>
+    where
+        Output == C2.Output, Failure == C2.Failure
+    {
+        c2.eraseToAnyPublisher()
+    }
+
+    public static func buildBlock<C0, C1, C2, C3: Publisher>(_ c0: C0?, _ c1: C1?, _ c2: C2?, _ c3: C3) -> AnyPublisher<Output, Failure>
+    where
+        Output == C3.Output, Failure == C3.Failure
+    {
+        c3.eraseToAnyPublisher()
     }
 }
 
