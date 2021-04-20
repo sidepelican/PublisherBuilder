@@ -93,4 +93,30 @@ final class FlatMapBuilderTests: XCTestCase {
             }
             .eraseToAnyPublisher()
     }
+
+    func testBlocks() {
+        let _: AnyPublisher<[String], Error> = neverSubject
+            .flatMapBuild { v in
+                _ = 1
+                errorSubject
+            }
+            .eraseToAnyPublisher()
+
+        let _: AnyPublisher<[String], Error> = neverSubject
+            .flatMapBuild { v in
+                _ = 1
+                Int("")
+                errorSubject
+            }
+            .eraseToAnyPublisher()
+
+        let _: AnyPublisher<[String], Error> = neverSubject
+            .flatMapBuild { v in
+                let _ = 1
+                Int("")
+                ()
+                errorSubject
+            }
+            .eraseToAnyPublisher()
+    }
 }
