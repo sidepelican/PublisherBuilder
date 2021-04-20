@@ -116,27 +116,21 @@ final class FlatMapBuilderTests: XCTestCase {
             .eraseToAnyPublisher()
     }
 
-    func testBlocks() {
+    func testMultipleExpressions() {
         let _: AnyPublisher<[String], Error> = neverSubject
             .flatMapBuild { v in
-                _ = 1
+                let _ = 1
+                let _ = Int("")
+                let (_, _) = 1.remainderReportingOverflow(dividingBy: 1)
                 errorSubject
             }
             .eraseToAnyPublisher()
 
         let _: AnyPublisher<[String], Never> = neverSubject
             .flatMapBuild { v -> AnyPublisher<[String], Never> in
-                _ = 1
+                var a: () = ()
                 Just([])
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[String], Error> = neverSubject
-            .flatMapBuild { v in
-                let _ = 1
-                Int("")
-                ()
-                errorSubject
+                let _ = a = a = a
             }
             .eraseToAnyPublisher()
     }
