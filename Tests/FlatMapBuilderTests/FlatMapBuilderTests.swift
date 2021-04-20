@@ -53,6 +53,12 @@ final class FlatMapBuilderTests: XCTestCase {
                 Empty()
             }
             .eraseToAnyPublisher()
+
+        let _: AnyPublisher<[String], Error> = errorSubject
+            .flatMapBuild { v in
+                errorSubject
+            }
+            .eraseToAnyPublisher()
     }
 
     func testExample3() {
@@ -91,6 +97,16 @@ final class FlatMapBuilderTests: XCTestCase {
 
         let _: AnyPublisher<[String], Error> = neverSubject
             .flatMapBuild { v in
+                if v.isEmpty {
+                    Just([])
+                } else {
+                    errorSubject
+                }
+            }
+            .eraseToAnyPublisher()
+
+        let _: AnyPublisher<[String], Error> = errorSubject
+            .flatMapBuild(to: [String].self) { v in
                 if v.isEmpty {
                     Just([])
                 } else {
