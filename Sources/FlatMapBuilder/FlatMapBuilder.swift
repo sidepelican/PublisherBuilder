@@ -13,11 +13,11 @@ public struct FlatMapBuilder<Output, Failure: Error> {
         component.eraseToAnyPublisher()
     }
 
+    @_disfavoredOverload
     public static func buildExpression<E>(_ expression: E) -> E {
         expression
     }
 
-    @_disfavoredOverload
     public static func buildExpression<P: Publisher>(_ expression: P) -> P
     where
         P.Output == Output, P.Failure == Failure
@@ -25,6 +25,7 @@ public struct FlatMapBuilder<Output, Failure: Error> {
         expression
     }
 
+    @_disfavoredOverload
     public static func buildExpression<P: Publisher>(_ expression: P) -> Publishers.SetFailureType<P, Failure>
     where
         P.Output == Output, P.Failure == Never
