@@ -1,7 +1,7 @@
 import Combine
 
 @_functionBuilder
-public struct FlatMapBuilder<Output, Failure: Error> {
+public struct PublisherBuilder<Output, Failure: Error> {
     public static func buildBlock<C: Publisher>(_ component: C) -> C {
         component
     }
@@ -109,7 +109,7 @@ extension Publisher {
     @_disfavoredOverload
     public func flatMapBuild<O, F, P>(
         to outputType: O.Type = O.self,
-        @FlatMapBuilder<O, F> _ builder: @escaping (Self.Output) -> P
+        @PublisherBuilder<O, F> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<P, Self>
     where O == P.Output, F == P.Failure, P: Publisher, P.Failure == Failure
     {
@@ -119,7 +119,7 @@ extension Publisher {
     @_disfavoredOverload
     public func flatMapBuild<O, P>(
         to outputType: O.Type = O.self,
-        @FlatMapBuilder<O, Never> _ builder: @escaping (Self.Output) -> P
+        @PublisherBuilder<O, Never> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<Publishers.SetFailureType<P, Self.Failure>, Self>
     where O == P.Output, P: Publisher, P.Failure == Never
     {
@@ -135,7 +135,7 @@ extension Publisher where Failure == Never {
     @_disfavoredOverload
     public func flatMapBuild<O, F, P>(
         to outputType: O.Type = O.self,
-        @FlatMapBuilder<O, F> _ builder: @escaping (Self.Output) -> P
+        @PublisherBuilder<O, F> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<P, Publishers.SetFailureType<Self, P.Failure>>
     where O == P.Output, F == P.Failure, P: Publisher
     {
@@ -148,7 +148,7 @@ extension Publisher where Failure == Never {
 
     public func flatMapBuild<O, P>(
         to outputType: O.Type = O.self,
-        @FlatMapBuilder<O, Never> _ builder: @escaping (Self.Output) -> P
+        @PublisherBuilder<O, Never> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<P, Self>
     where O == P.Output, P: Publisher, P.Failure == Never
     {

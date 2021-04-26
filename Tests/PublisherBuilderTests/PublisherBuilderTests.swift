@@ -1,13 +1,13 @@
 import Combine
 import XCTest
-@testable import FlatMapBuilder
+@testable import PublisherBuilder
 
 let neverSubject = PassthroughSubject<[Int], Never>()
 let errorSubject = PassthroughSubject<[String], Error>()
 struct CustomError: Error {}
 let customErrorSubject = PassthroughSubject<[Double], CustomError>()
 
-final class FlatMapBuilderTests: XCTestCase {
+final class PublisherBuilderTests: XCTestCase {
     func testExample() {
         let _: AnyPublisher<[String], Never> = neverSubject
             .flatMapBuild { v -> AnyPublisher<[String], Never> in
@@ -137,12 +137,12 @@ final class FlatMapBuilderTests: XCTestCase {
             .eraseToAnyPublisher()
     }
 
-    @FlatMapBuilder<[Double], Error>
+    @PublisherBuilder<[Double], Error>
     func testUpcastError() -> AnyPublisher<[Double], Error> {
         customErrorSubject
     }
 
-    @FlatMapBuilder<Void, Error>
+    @PublisherBuilder<Void, Error>
     func testUpcastError2() -> AnyPublisher<Void, Error> {
         if Bool.random() {
             customErrorSubject.map { _ in }
@@ -153,7 +153,7 @@ final class FlatMapBuilderTests: XCTestCase {
         }
     }
 
-    @FlatMapBuilder<Void, CustomError>
+    @PublisherBuilder<Void, CustomError>
     func testUpcastError3() -> AnyPublisher<Void, CustomError> {
         if Bool.random() {
             customErrorSubject.map { _ in }
