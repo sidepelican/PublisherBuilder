@@ -2,149 +2,35 @@ import Combine
 import XCTest
 @testable import PublisherBuilder
 
-let neverSubject = PassthroughSubject<[Int], Never>()
-let errorSubject = PassthroughSubject<[String], Error>()
-struct CustomError: Error {}
-let customErrorSubject = PassthroughSubject<[Double], CustomError>()
+private let neverSubject = PassthroughSubject<[Int], Never>()
+private let errorSubject = PassthroughSubject<[String], Error>()
+private struct CustomError: Error {}
+private let customErrorSubject = PassthroughSubject<[Double], CustomError>()
 
 final class PublisherBuilderTests: XCTestCase {
-    func testExample() {
-        let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild { v -> AnyPublisher<[String], Never> in
-                Just([])
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild { v in
-                Just([""])
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild(to: [String].self) { v in
-                Just([])
-            }
-            .eraseToAnyPublisher()
-    }
-
-    func testExample2() {
-        let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild { v in
-                errorSubject
-                    .catch { _ in
-                        Empty()
-                    }
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[String], Error> = neverSubject
-            .flatMapBuild { v in
-                errorSubject
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[Int], Error> = errorSubject
-            .flatMapBuild { v in
-                neverSubject
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[Int], Error> = errorSubject
-            .flatMapBuild { v -> AnyPublisher<[Int], Never> in
-                Empty()
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[String], Error> = errorSubject
-            .flatMapBuild { v in
-                errorSubject
-            }
-            .eraseToAnyPublisher()
-    }
-
-    func testExample3() {
-        let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild(to: [String].self) { v in
-                if v.isEmpty {
-                    Just([])
-                } else {
-                    Just([])
-                }
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild { v in
-                if v.isEmpty {
-                    Just([""])
-                } else {
-                    Just([])
-                }
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild { v in
-                if v.isEmpty {
-                    Just([])
-                } else {
-                    errorSubject
-                        .catch { _ in
-                            Empty()
-                        }
-                }
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[String], Error> = neverSubject
-            .flatMapBuild { v in
-                if v.isEmpty {
-                    Just([])
-                } else {
-                    errorSubject
-                }
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[String], Error> = errorSubject
-            .flatMapBuild(to: [String].self) { v in
-                if v.isEmpty {
-                    Just([])
-                } else {
-                    errorSubject
-                }
-            }
-            .eraseToAnyPublisher()
-    }
-
     func testMultipleExpressions() {
-        let _: AnyPublisher<[String], Error> = neverSubject
-            .flatMapBuild { v in
-                let _ = 1
-                let _ = Int("")
-                let (_, _) = 1.remainderReportingOverflow(dividingBy: 1)
-                errorSubject
-            }
-            .eraseToAnyPublisher()
+        _ = PublisherBuilder.build {
+            let _ = 1
+            let _ = Int("")
+            let (_, _) = 1.remainderReportingOverflow(dividingBy: 1)
+            errorSubject
+        }
 
-        let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild { v -> AnyPublisher<[String], Never> in
-                var a: () = ()
-                Just([])
-                let _ = a = a = a
-            }
-            .eraseToAnyPublisher()
+        let _: Just<[String]> = PublisherBuilder.build {
+            var a: () = ()
+            Just([])
+            let _ = a = a = a
+        }
     }
 
-    func testUpcastError() -> AnyPublisher<[Double], Error> {
-        PublisherBuilder.build {
+    func testUpcastError() {
+        let _: AnyPublisher<[Double], Error> = PublisherBuilder.build {
             customErrorSubject
         }
     }
 
-    func testUpcastError2() -> AnyPublisher<Void, Error> {
-        PublisherBuilder.build {
+    func testUpcastError2() {
+        let _: AnyPublisher<Void, Error> = PublisherBuilder.build {
             if Bool.random() {
                 customErrorSubject.map { _ in }
             } else if Bool.random() {
@@ -155,8 +41,8 @@ final class PublisherBuilderTests: XCTestCase {
         }
     }
 
-    func testUpcastError3() -> AnyPublisher<Void, CustomError> {
-        PublisherBuilder.build {
+    func testUpcastError3() {
+        let _: AnyPublisher<Void, CustomError> = PublisherBuilder.build {
             if Bool.random() {
                 customErrorSubject.map { _ in }
             } else {
@@ -165,19 +51,20 @@ final class PublisherBuilderTests: XCTestCase {
         }
     }
 
-    func testAsAnyPublisher() -> AnyPublisher<[String], Error> {
-        PublisherBuilder.build {
+    func testNotAsAnyPublisher() {
+        let _: PassthroughSubject<[String], Error> = PublisherBuilder.build {
             errorSubject
         }
     }
 
-    func testNotAsAnyPublisher() -> PassthroughSubject<[String], Error> {
-        PublisherBuilder.build {
+    func testNotTypeErased() {
+        let some = PublisherBuilder.build {
             errorSubject
         }
+        XCTAssertEqual("\(type(of: some).self)", "\(type(of: errorSubject))")
     }
 
-    func testWithAnyPublisherReturnType() {
+    func testWithHandlerType() {
         let _: AnyPublisher<[String], Error> = build {
             Empty()
         }

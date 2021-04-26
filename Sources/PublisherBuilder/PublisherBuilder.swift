@@ -6,6 +6,7 @@ public struct PublisherBuilder<Output, Failure: Error> {
         component
     }
 
+    @_disfavoredOverload
     static func buildFinalResult<C: Publisher>(_ component: C) -> AnyPublisher<Output, Failure>
     where
         Output == C.Output, Failure == C.Failure
@@ -87,76 +88,6 @@ public struct PublisherBuilder<Output, Failure: Error> {
         Failure == Error
     {
         .right(component.mapError { $0 as Failure })
-    }
-}
-
-public enum EitherPublisher<L: Publisher, R: Publisher>: Publisher
-where
-    L.Output == R.Output, L.Failure == R.Failure
-{
-    public typealias Output = L.Output
-    public typealias Failure = L.Failure
-    case left(L)
-    case right(R)
-
-    public func receive<S>(subscriber: S) where S : Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
-        switch self {
-        case .left(let value):
-            value.receive(subscriber: subscriber)
-        case .right(let value):
-            value.receive(subscriber: subscriber)
-        }
-    }
-}
-
-extension Publisher {
-    @_disfavoredOverload
-    public func flatMapBuild<O, F, P>(
-        to outputType: O.Type = O.self,
-        @PublisherBuilder<O, F> _ builder: @escaping (Self.Output) -> P
-    ) -> Publishers.FlatMap<P, Self>
-    where O == P.Output, F == P.Failure, P: Publisher, P.Failure == Failure
-    {
-        flatMap(builder)
-    }
-
-    @_disfavoredOverload
-    public func flatMapBuild<O, P>(
-        to outputType: O.Type = O.self,
-        @PublisherBuilder<O, Never> _ builder: @escaping (Self.Output) -> P
-    ) -> Publishers.FlatMap<Publishers.SetFailureType<P, Self.Failure>, Self>
-    where O == P.Output, P: Publisher, P.Failure == Never
-    {
-        if #available(macOS 11.0, iOS 14.0, *) {
-            return flatMap(builder)
-        } else {
-            return flatMap { builder($0).setFailureType(to: Failure.self) }
-        }
-    }
-}
-
-extension Publisher where Failure == Never {
-    @_disfavoredOverload
-    public func flatMapBuild<O, F, P>(
-        to outputType: O.Type = O.self,
-        @PublisherBuilder<O, F> _ builder: @escaping (Self.Output) -> P
-    ) -> Publishers.FlatMap<P, Publishers.SetFailureType<Self, P.Failure>>
-    where O == P.Output, F == P.Failure, P: Publisher
-    {
-        if #available(macOS 11.0, iOS 14.0, *) {
-            return flatMap(builder)
-        } else {
-            return setFailureType(to: P.Failure.self).flatMap(builder)
-        }
-    }
-
-    public func flatMapBuild<O, P>(
-        to outputType: O.Type = O.self,
-        @PublisherBuilder<O, Never> _ builder: @escaping (Self.Output) -> P
-    ) -> Publishers.FlatMap<P, Self>
-    where O == P.Output, P: Publisher, P.Failure == Never
-    {
-        flatMap(builder)
     }
 }
 
