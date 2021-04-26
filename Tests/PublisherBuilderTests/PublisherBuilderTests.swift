@@ -137,28 +137,77 @@ final class PublisherBuilderTests: XCTestCase {
             .eraseToAnyPublisher()
     }
 
-    @PublisherBuilder<[Double], Error>
     func testUpcastError() -> AnyPublisher<[Double], Error> {
-        customErrorSubject
+        PublisherBuilder.build {
+            customErrorSubject
+        }
     }
 
-    @PublisherBuilder<Void, Error>
     func testUpcastError2() -> AnyPublisher<Void, Error> {
-        if Bool.random() {
-            customErrorSubject.map { _ in }
-        } else if Bool.random() {
-            errorSubject.map { _ in }
-        } else {
-            neverSubject.map { _ in }
+        PublisherBuilder.build {
+            if Bool.random() {
+                customErrorSubject.map { _ in }
+            } else if Bool.random() {
+                errorSubject.map { _ in }
+            } else {
+                neverSubject.map { _ in }
+            }
         }
     }
 
-    @PublisherBuilder<Void, CustomError>
     func testUpcastError3() -> AnyPublisher<Void, CustomError> {
-        if Bool.random() {
-            customErrorSubject.map { _ in }
-        } else {
-            neverSubject.map { _ in }
+        PublisherBuilder.build {
+            if Bool.random() {
+                customErrorSubject.map { _ in }
+            } else {
+                neverSubject.map { _ in }
+            }
         }
     }
+
+    func testAsAnyPublisher() -> AnyPublisher<[String], Error> {
+        PublisherBuilder.build {
+            errorSubject
+        }
+    }
+
+    func testNotAsAnyPublisher() -> PassthroughSubject<[String], Error> {
+        PublisherBuilder.build {
+            errorSubject
+        }
+    }
+
+    func testWithAnyPublisherReturnType() {
+        let _: AnyPublisher<[String], Error> = build {
+            Empty()
+        }
+
+        let _: () -> AnyPublisher<[String], Error> = build {
+            Empty()
+        }
+
+        let _: (Int) -> AnyPublisher<[String], Error> = build { _ in
+            Empty()
+        }
+
+        let _: (Int, Int) -> AnyPublisher<[String], Error> = build { _, _ in
+            Empty()
+        }
+    }
+}
+
+private func build<P: Publisher>(@PublisherBuilder<P.Output, P.Failure> builder: () -> P) -> P {
+    builder()
+}
+
+private func build<P: Publisher>(@PublisherBuilder<P.Output, P.Failure> builder: @escaping () -> P) -> () -> P {
+    { builder() }
+}
+
+private func build<P: Publisher, C0>(@PublisherBuilder<P.Output, P.Failure> builder: @escaping (C0) -> P) -> (C0) -> P {
+    { builder($0) }
+}
+
+private func build<P: Publisher, C0, C1>(@PublisherBuilder<P.Output, P.Failure> builder: @escaping (C0, C1) -> P) -> (C0, C1) -> P {
+    { builder($0, $1) }
 }

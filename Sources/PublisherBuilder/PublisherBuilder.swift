@@ -2,15 +2,19 @@ import Combine
 
 @_functionBuilder
 public struct PublisherBuilder<Output, Failure: Error> {
-    public static func buildBlock<C: Publisher>(_ component: C) -> C {
+    static func buildFinalResult<C: Publisher>(_ component: C) -> C {
         component
     }
 
-    public static func buildBlock<C: Publisher>(_ component: C) -> AnyPublisher<Output, Failure>
+    static func buildFinalResult<C: Publisher>(_ component: C) -> AnyPublisher<Output, Failure>
     where
         Output == C.Output, Failure == C.Failure
     {
         component.eraseToAnyPublisher()
+    }
+
+    public static func buildBlock<C: Publisher>(_ component: C) -> C {
+        component
     }
 
     @_disfavoredOverload
@@ -153,5 +157,11 @@ extension Publisher where Failure == Never {
     where O == P.Output, P: Publisher, P.Failure == Never
     {
         flatMap(builder)
+    }
+}
+
+extension PublisherBuilder {
+    public static func build<P: Publisher>(@PublisherBuilder<Output, Failure> builder: () -> P) -> P where P.Output == Output, P.Failure == Failure {
+        builder()
     }
 }
