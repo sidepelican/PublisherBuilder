@@ -26,11 +26,11 @@ public struct FlatMapBuilder<Output, Failure: Error> {
     }
 
     @_disfavoredOverload
-    public static func buildExpression<P: Publisher>(_ expression: P) -> Publishers.SetFailureType<P, Failure>
+    public static func buildExpression<P: Publisher>(_ expression: P) -> Publishers.MapError<P, Failure>
     where
-        P.Output == Output, P.Failure == Never
+        P.Output == Output, Failure == Error
     {
-        expression.setFailureType(to: Failure.self)
+        expression.mapError { $0 as Error }
     }
 
     public static func buildEither<F: Publisher, S: Publisher>(first component: F) -> EitherPublisher<F, S>
@@ -49,6 +49,7 @@ public struct FlatMapBuilder<Output, Failure: Error> {
         .right(component)
     }
 
+    @_disfavoredOverload
     public static func buildEither<F: Publisher, S: Publisher>(first component: F) -> EitherPublisher<Publishers.SetFailureType<F, S.Failure>, S>
     where
         F.Output == S.Output,
@@ -57,12 +58,31 @@ public struct FlatMapBuilder<Output, Failure: Error> {
         .left(component.setFailureType(to: S.Failure.self))
     }
 
-    public static func buildEither<F: Publisher, S: Publisher>(first component: S) -> EitherPublisher<F, Publishers.SetFailureType<S, F.Failure>>
+    @_disfavoredOverload
+    public static func buildEither<F: Publisher, S: Publisher>(second component: S) -> EitherPublisher<F, Publishers.SetFailureType<S, F.Failure>>
     where
         F.Output == S.Output,
         S.Failure == Never
     {
         .right(component.setFailureType(to: F.Failure.self))
+    }
+
+    @_disfavoredOverload
+    public static func buildEither<F: Publisher, S: Publisher>(first component: F) -> EitherPublisher<Publishers.MapError<F, Failure>, S>
+    where
+        F.Output == S.Output,
+        Failure == Error
+    {
+        .left(component.mapError { $0 as Failure })
+    }
+
+    @_disfavoredOverload
+    public static func buildEither<F: Publisher, S: Publisher>(second component: S) -> EitherPublisher<F, Publishers.MapError<S, Failure>>
+    where
+        F.Output == S.Output,
+        Failure == Error
+    {
+        .right(component.mapError { $0 as Failure })
     }
 }
 
@@ -96,6 +116,7 @@ extension Publisher {
         flatMap(builder)
     }
 
+    @_disfavoredOverload
     public func flatMapBuild<O, P>(
         to outputType: O.Type = O.self,
         @FlatMapBuilder<O, Never> _ builder: @escaping (Self.Output) -> P
@@ -111,6 +132,7 @@ extension Publisher {
 }
 
 extension Publisher where Failure == Never {
+    @_disfavoredOverload
     public func flatMapBuild<O, F, P>(
         to outputType: O.Type = O.self,
         @FlatMapBuilder<O, F> _ builder: @escaping (Self.Output) -> P
