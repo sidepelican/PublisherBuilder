@@ -4,6 +4,8 @@ import XCTest
 
 private let neverSubject = PassthroughSubject<[Int], Never>()
 private let errorSubject = PassthroughSubject<[String], Error>()
+private struct CustomError: Error {}
+private let customErrorSubject = PassthroughSubject<[Double], CustomError>()
 
 final class FlatMapExtensionTests: XCTestCase {
     func testOutputType() {
@@ -111,6 +113,16 @@ final class FlatMapExtensionTests: XCTestCase {
                     Just([])
                 } else {
                     errorSubject
+                }
+            }
+            .eraseToAnyPublisher()
+
+        let _: AnyPublisher<[String], CustomError> = neverSubject
+            .flatMapBuild(to: [String].self) { v in
+                if v.isEmpty {
+                    Just([])
+                } else {
+                    Empty<[String], CustomError>()
                 }
             }
             .eraseToAnyPublisher()

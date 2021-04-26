@@ -64,6 +64,14 @@ final class PublisherBuilderTests: XCTestCase {
         XCTAssertEqual("\(type(of: some).self)", "\(type(of: errorSubject))")
     }
 
+    func testNestedBuilder() {
+        let _: AnyPublisher<Void, CustomError> = PublisherBuilder.build {
+            PublisherBuilder.build {
+                Empty()
+            }
+        }
+    }
+
     func testWithHandlerType() {
         let _: AnyPublisher<[String], Error> = build {
             Empty()

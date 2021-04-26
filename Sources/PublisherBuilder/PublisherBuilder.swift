@@ -19,6 +19,14 @@ public struct PublisherBuilder<Output, Failure: Error> {
     }
 
     @_disfavoredOverload
+    public static func buildBlock<C: Publisher>(_ component: C) -> Publishers.MapError<C, Failure>
+    where
+        C.Output == Output, Failure == Error
+    {
+        component.mapError { $0 as Error }
+    }
+
+    @_disfavoredOverload
     public static func buildExpression<E>(_ expression: E) -> E {
         expression
     }
@@ -31,11 +39,11 @@ public struct PublisherBuilder<Output, Failure: Error> {
     }
 
     @_disfavoredOverload
-    public static func buildExpression<P: Publisher>(_ expression: P) -> Publishers.MapError<P, Failure>
+    public static func buildExpression<P: Publisher>(_ expression: P) -> Publishers.SetFailureType<P, Failure>
     where
-        P.Output == Output, Failure == Error
+        P.Output == Output, P.Failure == Never
     {
-        expression.mapError { $0 as Error }
+        expression.setFailureType(to: Failure.self)
     }
 
     public static func buildEither<F: Publisher, S: Publisher>(first component: F) -> EitherPublisher<F, S>
@@ -52,42 +60,6 @@ public struct PublisherBuilder<Output, Failure: Error> {
         F.Failure == S.Failure
     {
         .right(component)
-    }
-
-    @_disfavoredOverload
-    public static func buildEither<F: Publisher, S: Publisher>(first component: F) -> EitherPublisher<Publishers.SetFailureType<F, S.Failure>, S>
-    where
-        F.Output == S.Output,
-        F.Failure == Never
-    {
-        .left(component.setFailureType(to: S.Failure.self))
-    }
-
-    @_disfavoredOverload
-    public static func buildEither<F: Publisher, S: Publisher>(second component: S) -> EitherPublisher<F, Publishers.SetFailureType<S, F.Failure>>
-    where
-        F.Output == S.Output,
-        S.Failure == Never
-    {
-        .right(component.setFailureType(to: F.Failure.self))
-    }
-
-    @_disfavoredOverload
-    public static func buildEither<F: Publisher, S: Publisher>(first component: F) -> EitherPublisher<Publishers.MapError<F, Failure>, S>
-    where
-        F.Output == S.Output,
-        Failure == Error
-    {
-        .left(component.mapError { $0 as Failure })
-    }
-
-    @_disfavoredOverload
-    public static func buildEither<F: Publisher, S: Publisher>(second component: S) -> EitherPublisher<F, Publishers.MapError<S, Failure>>
-    where
-        F.Output == S.Output,
-        Failure == Error
-    {
-        .right(component.mapError { $0 as Failure })
     }
 }
 
