@@ -10,10 +10,28 @@ let package = Package(
         .library(
             name: "PublisherBuilder",
             targets: ["PublisherBuilder"]),
+        .executable(
+            name: "WaiwaiPublisherBuilder1",
+            targets: ["WaiwaiPublisherBuilder1"]),
+        .executable(
+            name: "WaiwaiPublisherBuilder2",
+            targets: ["WaiwaiPublisherBuilder2"]),
+        .executable(
+            name: "WaiwaiPublisherBuilder2-2",
+            targets: ["WaiwaiPublisherBuilder2-2"]),
     ],
     targets: [
         .target(
             name: "PublisherBuilder",
+            dependencies: []),
+        .target(
+            name: "WaiwaiPublisherBuilder1",
+            dependencies: []),
+        .target(
+            name: "WaiwaiPublisherBuilder2",
+            dependencies: []),
+        .target(
+            name: "WaiwaiPublisherBuilder2-2",
             dependencies: []),
         .testTarget(
             name: "PublisherBuilderTests",
