@@ -17,7 +17,7 @@ final class FlatMapExtensionTests: XCTestCase {
 
         let _: AnyPublisher<[String], Never> = neverSubject
             .flatMapBuild { v in
-                Just([""])
+                Just([])
             }
             .eraseToAnyPublisher()
 
@@ -77,7 +77,7 @@ final class FlatMapExtensionTests: XCTestCase {
         let _: AnyPublisher<[String], Never> = neverSubject
             .flatMapBuild { v in
                 if v.isEmpty {
-                    Just([""])
+                    Just([])
                 } else {
                     Just([])
                 }
@@ -108,7 +108,7 @@ final class FlatMapExtensionTests: XCTestCase {
             .eraseToAnyPublisher()
 
         let _: AnyPublisher<[String], Error> = errorSubject
-            .flatMapBuild(to: [String].self) { v in
+            .flatMapBuild { v in
                 if v.isEmpty {
                     Just([])
                 } else {

@@ -2,11 +2,11 @@ import Combine
 
 extension Publisher {
     @_disfavoredOverload
-    public func flatMapBuild<O, F, P>(
+    public func flatMapBuild<O, P>(
         to outputType: O.Type = O.self,
-        @PublisherBuilder<O, F> _ builder: @escaping (Self.Output) -> P
+        @PublisherBuilder<O, Failure> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<P, Self>
-    where O == P.Output, F == P.Failure, P: Publisher, P.Failure == Failure
+    where O == P.Output, P: Publisher, P.Failure == Failure
     {
         flatMap(builder)
     }

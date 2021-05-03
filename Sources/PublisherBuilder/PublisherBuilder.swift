@@ -1,6 +1,6 @@
 import Combine
 
-@_functionBuilder
+@resultBuilder
 public struct PublisherBuilder<Output, Failure: Error> {
     static func buildFinalResult<C: Publisher>(_ component: C) -> C {
         component
