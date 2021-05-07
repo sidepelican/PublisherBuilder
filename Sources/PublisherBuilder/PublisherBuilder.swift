@@ -38,6 +38,13 @@ public struct PublisherBuilder<Output, Failure: Error> {
         expression
     }
 
+    public static func buildExpression<P: Publisher>(_ expression: P) -> Publishers.Map<P, Optional<P.Output>>
+    where
+        Optional<P.Output> == Output, P.Failure == Failure
+    {
+        expression.map { $0 }
+    }
+
     @_disfavoredOverload
     public static func buildExpression<P: Publisher>(_ expression: P) -> Publishers.SetFailureType<P, Failure>
     where

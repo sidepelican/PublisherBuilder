@@ -72,6 +72,16 @@ final class PublisherBuilderTests: XCTestCase {
         }
     }
 
+    func testOptional() {
+        _ = PublisherBuilder<Int?, Never>.build {
+            if Bool.random() {
+                Just(nil)
+            } else {
+                PassthroughSubject<Int, Never>()
+            }
+        }
+    }
+
     func testWithHandlerType() {
         let _: AnyPublisher<[String], Error> = build {
             Empty()
