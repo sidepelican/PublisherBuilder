@@ -19,6 +19,9 @@ let package = Package(
         .executable(
             name: "WaiwaiPublisherBuilder2-2",
             targets: ["WaiwaiPublisherBuilder2-2"]),
+        .executable(
+            name: "WaiwaiPublisherBuilder3",
+            targets: ["WaiwaiPublisherBuilder3"]),
     ],
     targets: [
         .target(
@@ -32,6 +35,9 @@ let package = Package(
             dependencies: []),
         .target(
             name: "WaiwaiPublisherBuilder2-2",
+            dependencies: []),
+        .target(
+            name: "WaiwaiPublisherBuilder3",
             dependencies: []),
         .testTarget(
             name: "PublisherBuilderTests",
