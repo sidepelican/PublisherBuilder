@@ -2,12 +2,12 @@ import Combine
 
 @resultBuilder
 public struct PublisherBuilder<Output, Failure: Error> {
-    static func buildFinalResult<C: Publisher>(_ component: C) -> C {
+    public static func buildFinalResult<C: Publisher>(_ component: C) -> C {
         component
     }
 
     @_disfavoredOverload
-    static func buildFinalResult<C: Publisher>(_ component: C) -> AnyPublisher<Output, Failure>
+    public static func buildFinalResult<C: Publisher>(_ component: C) -> AnyPublisher<Output, Failure>
     where
         Output == C.Output, Failure == C.Failure
     {
@@ -16,14 +16,6 @@ public struct PublisherBuilder<Output, Failure: Error> {
 
     public static func buildBlock<C: Publisher>(_ component: C) -> C {
         component
-    }
-
-    @_disfavoredOverload
-    public static func buildBlock<C: Publisher>(_ component: C) -> Publishers.MapError<C, Failure>
-    where
-        C.Output == Output, Failure == Error
-    {
-        component.mapError { $0 as Error }
     }
 
     @_disfavoredOverload
@@ -46,9 +38,25 @@ public struct PublisherBuilder<Output, Failure: Error> {
     }
 
     @_disfavoredOverload
+    public static func buildExpression<E: Publisher>(_ expression: E) -> Publishers.MapError<E, Failure>
+    where
+        E.Output == Output, Failure == Error
+    {
+        expression.mapError { $0 as Error }
+    }
+
+    @_disfavoredOverload
     public static func buildExpression<P: Publisher>(_ expression: P) -> Publishers.SetFailureType<P, Failure>
     where
         P.Output == Output, P.Failure == Never
+    {
+        expression.setFailureType(to: Failure.self)
+    }
+
+    @_disfavoredOverload
+    public static func buildExpression<P: Publisher>(_ expression: P) -> Publishers.SetFailureType<P, Failure>
+    where
+        P.Output == Output, P.Failure == Never, Failure == Error
     {
         expression.setFailureType(to: Failure.self)
     }
