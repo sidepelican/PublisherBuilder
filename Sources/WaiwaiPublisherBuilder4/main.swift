@@ -21,6 +21,18 @@ where
 
 @resultBuilder
 struct PublisherBuilder<Output, Failure: Error> {
+    static func buildFinalResult<C: Publisher>(_ component: C) -> C {
+        component
+    }
+
+    @_disfavoredOverload
+    static func buildFinalResult<C: Publisher>(_ component: C) -> AnyPublisher<Output, Failure>
+    where
+        Output == C.Output, Failure == C.Failure
+    {
+        component.eraseToAnyPublisher()
+    }
+
     static func buildBlock<C: Publisher>(_ component: C) -> C {
         component
     }
@@ -120,42 +132,27 @@ extension Publisher where Failure == Never {
     }
 }
 
-struct MyError: Error {} 
-
-let _: AnyPublisher<[String], Error> = PassthroughSubject<Int, Never>() // Failure == Never
-    .flatMapBuild { v in
+let _: AnyPublisher<Int, Never> = PassthroughSubject<Int, Never>()
+    .flatMapBuild { v -> AnyPublisher<[String], Never> in
         if Bool.random() {
-            PassthroughSubject<[String], Never>() // Failure == Never
+            Just([])
         } else {
-            PassthroughSubject<[String], Error>() // Failure == Error
+            Empty()
         }
     }
-    .eraseToAnyPublisher()
-
-let _: AnyPublisher<[String], Error> = PassthroughSubject<Int, Never>() // Failure == Never
-    .flatMapBuild { v in
-        if Bool.random() {
-            PassthroughSubject<[String], Never>() // Failure == Never
-        } else if Bool.random() {
-            PassthroughSubject<[String], MyError>() // Failure == MyError
-        } else {
-            PassthroughSubject<[String], Error>() // Failure == Error
-        }
-    }
+    .map(\.count)
     .eraseToAnyPublisher()
 
 // シュッとかけるようにしたいコード
-if #available(macOS 11.0, *) {
-    let _: AnyPublisher<[String], Error> = PassthroughSubject<Int, Never>()
-        .flatMap { v -> AnyPublisher<[String], Error> in
-            if Bool.random() {
-                return PassthroughSubject<[String], Never>()
-                    .setFailureType(to: Error.self)
-                    .eraseToAnyPublisher()
-            } else {
-                return PassthroughSubject<[String], Error>()
-                    .eraseToAnyPublisher()
-            }
+let _: AnyPublisher<Int, Never> = PassthroughSubject<Int, Never>()
+    .flatMap { v -> AnyPublisher<[String], Never> in
+        if Bool.random() {
+            return Just([])
+                .eraseToAnyPublisher()
+        } else {
+            return Empty()
+                .eraseToAnyPublisher()
         }
-        .eraseToAnyPublisher()
-}
+    }
+    .map(\.count)
+    .eraseToAnyPublisher()
