@@ -10,21 +10,16 @@ private let customErrorSubject = PassthroughSubject<[Double], CustomError>()
 final class FlatMapExtensionTests: XCTestCase {
     func testOutputType() {
         let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild { v -> AnyPublisher<[String], Never> in
-                Just([])
-            }
-            .eraseToAnyPublisher()
-
-        let _: AnyPublisher<[String], Never> = neverSubject
             .flatMapBuild { v in
                 Just([])
             }
             .eraseToAnyPublisher()
 
-        let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild(to: [String].self) { v in
+        let _: AnyPublisher<Int, Never> = neverSubject
+            .flatMapBuild { v -> AnyPublisher<[String], Never> in
                 Just([])
             }
+            .map(\.count)
             .eraseToAnyPublisher()
     }
 
@@ -65,7 +60,7 @@ final class FlatMapExtensionTests: XCTestCase {
 
     func testEither() {
         let _: AnyPublisher<[String], Never> = neverSubject
-            .flatMapBuild(to: [String].self) { v in
+            .flatMapBuild { v in
                 if v.isEmpty {
                     Just([])
                 } else {
@@ -118,11 +113,11 @@ final class FlatMapExtensionTests: XCTestCase {
             .eraseToAnyPublisher()
 
         let _: AnyPublisher<[String], CustomError> = neverSubject
-            .flatMapBuild(to: [String].self) { v in
+            .flatMapBuild { v in
                 if v.isEmpty {
                     Just([])
                 } else {
-                    Empty<[String], CustomError>()
+                    Fail(error: CustomError())
                 }
             }
             .eraseToAnyPublisher()
