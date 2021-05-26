@@ -122,4 +122,28 @@ final class FlatMapExtensionTests: XCTestCase {
             }
             .eraseToAnyPublisher()
     }
+
+    func testMapErrorFlatMap() {
+        let _: AnyPublisher<Int, Error> = PassthroughSubject<Bool, CustomError>()
+            .flatMapBuild { _ in
+                if Bool.random() {
+                    Fail(error: CustomError())
+                } else {
+                    PassthroughSubject<Int, Error>()
+                }
+            }
+            .mapError { _ in CustomError() }
+            .eraseToAnyPublisher()
+
+        let _: AnyPublisher<Int, CustomError> = PassthroughSubject<Bool, CustomError>()
+            .flatMapBuild { _ in
+                if Bool.random() {
+                    Fail(error: CustomError())
+                } else {
+                    PassthroughSubject<Int, Error>()
+                }
+            }
+            .mapError { _ in CustomError() }
+            .eraseToAnyPublisher()
+    }
 }
