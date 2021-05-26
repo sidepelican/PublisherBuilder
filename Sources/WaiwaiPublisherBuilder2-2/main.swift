@@ -63,10 +63,10 @@ struct PublisherBuilder<Output, Failure: Error> {
 }
 
 extension Publisher {
-    func flatMapBuild<O, P>(
-        @PublisherBuilder<O, Failure> _ builder: @escaping (Self.Output) -> P
+    func flatMapBuild<O, F, P>(
+        @PublisherBuilder<O, F> _ builder: @escaping (Output) -> P
     ) -> Publishers.FlatMap<P, Self>
-    where O == P.Output, P: Publisher, P.Failure == Failure
+    where O == P.Output, F == P.Failure, P: Publisher, P.Failure == Failure
     {
         flatMap(builder)
     }
