@@ -18,11 +18,6 @@ public struct PublisherBuilder<Output, Failure: Error> {
         component
     }
 
-    @_disfavoredOverload
-    public static func buildExpression<E>(_ expression: E) -> E {
-        expression
-    }
-
     public static func buildExpression<P: Publisher>(_ expression: P) -> P
     where
         P.Output == Output, P.Failure == Failure

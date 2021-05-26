@@ -1,7 +1,6 @@
 import Combine
 
 extension Publisher {
-    @_disfavoredOverload
     public func flatMapBuild<O, P>(
         @PublisherBuilder<O, Failure> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<P, Self>
@@ -10,7 +9,6 @@ extension Publisher {
         flatMap(builder)
     }
 
-    @_disfavoredOverload
     public func flatMapBuild<O, P>(
         @PublisherBuilder<O, Never> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<Publishers.SetFailureType<P, Self.Failure>, Self>
@@ -25,7 +23,6 @@ extension Publisher {
 }
 
 extension Publisher where Failure == Never {
-    @_disfavoredOverload
     public func flatMapBuild<O, F, P>(
         @PublisherBuilder<O, F> _ builder: @escaping (Self.Output) -> P
     ) -> Publishers.FlatMap<P, Publishers.SetFailureType<Self, P.Failure>>
