@@ -121,5 +121,22 @@ final class FlatMapExtensionTests: XCTestCase {
                 }
             }
             .eraseToAnyPublisher()
+
+        let _: AnyPublisher<[String], CustomError> = customErrorSubject
+            .flatMapBuild { v in
+                if v.isEmpty {
+                    Just([])
+                } else {
+                    Fail(error: CustomError())
+                }
+            }
+            .eraseToAnyPublisher()
+    }
+}
+
+extension Publisher {
+    // this extension method breaks some type inference
+    func unused() -> Empty<Int, Failure> { // result type should be some Publisher where Failure == Self.Failure
+        fatalError()
     }
 }
