@@ -92,7 +92,7 @@ let _: AnyPublisher<[String], CustomError> = PassthroughSubject<[Int], Never>()
 SwiftPM
 
 ```
-.package(url: "https://github.com/sidepelican/PublisherBuilder.git", from: "1.0.0")
+.package(url: "https://github.com/sidepelican/PublisherBuilder.git", from: "1.1.0")
 ```
 
 ## License
